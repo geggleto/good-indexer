@@ -2,6 +2,7 @@ import { MikroORM } from '@mikro-orm/core';
 import pg from '@mikro-orm/postgresql';
 import { resolve, dirname } from 'node:path';
 import { existsSync } from 'node:fs';
+import { Gauge, MetricsRegistry, MetricsServer } from '@good-indexer/metrics';
 // Note: to keep executor minimal here, avoid actual wallet send; compute deterministic tx hash
 export type Hex = `0x${string}`;
 
@@ -15,6 +16,11 @@ export class EvmExecutor {
   private orm!: MikroORM;
   private running = false;
   private readonly cfg: Required<ExecutorConfig>;
+  private registry: MetricsRegistry = new MetricsRegistry();
+  private metrics = {
+    outboxUnpublished: this.registry.register(new Gauge('domain_outbox_unpublished', 'Unpublished domain outbox rows')),
+  };
+  private metricsServer?: MetricsServer;
 
   constructor(cfg: ExecutorConfig) {
     this.cfg = {
@@ -38,12 +44,18 @@ export class EvmExecutor {
     if (!this.orm) await this.initOrm();
     if (!this.cfg.executorEnabled) return;
     this.running = true;
+    this.metricsServer = new MetricsServer(this.registry);
+    this.metricsServer.start();
     const conn = this.orm.em.getConnection();
 
     while (this.running) {
       const rows = (await conn.execute(
         `SELECT command_key, kind, payload FROM domain.domain_outbox WHERE published_at IS NULL ORDER BY command_key ASC NULLS LAST LIMIT 100`
       )) as Array<{ command_key: string; kind: string; payload: any }>;
+      const cnt = (await conn.execute(
+        `SELECT COUNT(*)::int AS c FROM domain.domain_outbox WHERE published_at IS NULL`
+      )) as Array<{ c: number }>;
+      this.metrics.outboxUnpublished.set({}, cnt[0]?.c ?? 0);
       if (rows.length === 0) {
         await delay(300);
         continue;

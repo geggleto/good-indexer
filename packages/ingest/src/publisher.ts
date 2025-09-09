@@ -2,6 +2,7 @@ import { MikroORM } from '@mikro-orm/core';
 import pg from '@mikro-orm/postgresql';
 import { resolve } from 'node:path';
 import { findRootSync } from '@manypkg/find-root';
+import { setTimeout as delayMs } from 'timers/promises';
 
 export class IngestPublisher {
   private orm!: MikroORM;
@@ -56,6 +57,6 @@ export class IngestPublisher {
 }
 
 function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return delayMs(ms) as unknown as Promise<void>;
 }
 
