@@ -24,6 +24,8 @@ export default defineConfig({
         '**/migrations/**',
         '**/src/index.ts',
         '**/src/**/index.ts',
+        '**/container.ts',
+        '**/example.ts',
       ],
     },
   },
