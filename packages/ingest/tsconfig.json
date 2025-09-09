@@ -4,7 +4,11 @@
     "outDir": "dist",
     "rootDir": "src",
     "composite": false,
-    "strict": true
+    "strict": true,
+    "baseUrl": ".",
+    "paths": {
+      "../../metrics/src/index.js": ["../metrics/src/index.ts"]
+    }
   },
   "include": ["src/**/*"]
 }

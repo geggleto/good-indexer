@@ -1,10 +1,11 @@
 #!/usr/bin/env node
+/// <reference types="node" />
 import 'dotenv/config';
 import { Command } from 'commander';
 import { MikroORM } from '@mikro-orm/core';
 import pg from '@mikro-orm/postgresql';
 import { findRootSync } from '@manypkg/find-root';
-import { resolve } from 'node:path';
+import { resolve } from 'path';
 
 const program = new Command();
 
@@ -108,6 +109,135 @@ program
     }
     console.error('Specify --ingest or --publisher or --dispatch or --executor');
     process.exit(1);
+  });
+
+program
+  .command('replay')
+  .description('Replay a block range for a handler into the inbox')
+  .requiredOption('--from <block>', 'From block (inclusive)')
+  .requiredOption('--to <block>', 'To block (inclusive)')
+  .requiredOption('--handler <kind>', 'Handler kind label for inbox')
+  .option('--batch <n>', 'Batch size for upserts', '1000')
+  .action(async (opts: { from: string; to: string; handler: string; batch?: string }) => {
+    const dbUrl = process.env.DB_URL;
+    if (!dbUrl) {
+      console.error('DB_URL is required');
+      process.exit(1);
+    }
+    const dispatchPkg: any = await import('@good-indexer/dispatch');
+    const fromBn = BigInt(opts.from);
+    const toBn = BigInt(opts.to);
+    if (toBn < fromBn) {
+      console.error('--to must be >= --from');
+      process.exit(1);
+    }
+    const batchSize = Number(opts.batch ?? '1000');
+    const res = await dispatchPkg.replayRange(dbUrl, opts.handler, fromBn, toBn, batchSize);
+    console.log(JSON.stringify({ ...res, from: opts.from, to: opts.to, handler: opts.handler }, null, 2));
+  });
+
+program
+  .command('dlq')
+  .description('Reset DLQ or FAIL entries back to PENDING for a handler')
+  .requiredOption('--handler <kind>', 'Handler kind label for inbox')
+  .requiredOption('--limit <n>', 'Maximum rows to reset')
+  .option('--source <dlq|fail>', 'Which source status to drain', 'dlq')
+  .action(async (opts: { handler: string; limit: string; source?: string }) => {
+    const dbUrl = process.env.DB_URL;
+    if (!dbUrl) {
+      console.error('DB_URL is required');
+      process.exit(1);
+    }
+    const dispatchPkg: any = await import('@good-indexer/dispatch');
+    const limit = Number(opts.limit);
+    if (opts.source?.toLowerCase() === 'fail') {
+      await dispatchPkg.dlqFailures(dbUrl, opts.handler, limit);
+      console.log(JSON.stringify({ handler: opts.handler, reset: 'FAIL->PENDING', limit }, null, 2));
+    } else {
+      await dispatchPkg.dlqDrain(dbUrl, opts.handler, limit);
+      console.log(JSON.stringify({ handler: opts.handler, reset: 'DLQ->PENDING', limit }, null, 2));
+    }
+  });
+
+program
+  .command('status')
+  .description('Show operational status from DB and RPC head')
+  .option('--handler <kind>', 'Optional handler to scope inbox counts')
+  .option('--json', 'Output JSON instead of text')
+  .action(async (opts: { handler?: string; json?: boolean }) => {
+    const dbUrl = process.env.DB_URL;
+    if (!dbUrl) {
+      console.error('DB_URL is required');
+      process.exit(1);
+    }
+    const monorepoRoot = findRootSync(process.cwd()).rootDir;
+    const orm = await MikroORM.init({
+      extensions: [pg.PostgreSqlDriver],
+      clientUrl: dbUrl,
+      entities: [resolve(monorepoRoot, 'packages/storage-postgres/src/entities')],
+      entitiesTs: [resolve(monorepoRoot, 'packages/storage-postgres/src/entities')],
+      allowGlobalContext: true,
+    } as any);
+
+    const conn = orm.em.getConnection();
+    const ingestPkg: any = await import('@good-indexer/ingest');
+    const rpcUrl = process.env.RPC_READ_URL;
+    let head: bigint | null = null;
+    if (rpcUrl) {
+      try {
+        const rpc = new ingestPkg.RpcReadClient(rpcUrl);
+        head = await rpc.getBlockNumber(800);
+      } catch {
+        head = null;
+      }
+    }
+
+    const cursors = (await conn.execute(
+      `SELECT id, last_processed_block FROM infra.cursors ORDER BY id ASC`
+    )) as Array<{ id: string; last_processed_block: string }>;
+
+    const outboxPending = (await conn.execute(
+      `SELECT COUNT(*)::int AS c FROM infra.ingest_outbox WHERE published_at IS NULL`
+    )) as Array<{ c: number }>;
+
+    const inboxCounts = (await conn.execute(
+      opts.handler
+        ? `SELECT status, COUNT(*)::int AS c FROM infra.inbox WHERE handler_kind = $1 GROUP BY status`
+        : `SELECT status, COUNT(*)::int AS c FROM infra.inbox GROUP BY status`,
+      opts.handler ? [opts.handler] : []
+    )) as Array<{ status: string; c: number }>;
+
+    const domainUnpub = (await conn.execute(
+      `SELECT COUNT(*)::int AS c FROM domain.domain_outbox WHERE published_at IS NULL`
+    )) as Array<{ c: number }>;
+
+    await orm.close(true);
+
+    const cursorSummaries = cursors.map((c) => ({
+      id: c.id,
+      last_processed_block: c.last_processed_block,
+      backlog: head ? Number(head - BigInt(c.last_processed_block)) : null,
+    }));
+
+    const result = {
+      head: head ? head.toString() : null,
+      cursors: cursorSummaries,
+      ingest_outbox_pending: outboxPending[0]?.c ?? 0,
+      inbox_counts: inboxCounts.reduce((acc, r) => ({ ...acc, [r.status]: r.c }), {} as Record<string, number>),
+      domain_outbox_unpublished: domainUnpub[0]?.c ?? 0,
+    };
+
+    if (opts.json) {
+      console.log(JSON.stringify(result, null, 2));
+    } else {
+      console.log('Head:', result.head ?? 'unknown');
+      for (const c of result.cursors) {
+        console.log(`Cursor ${c.id}: last=${c.last_processed_block} backlog=${c.backlog ?? 'n/a'}`);
+      }
+      console.log('Ingest outbox pending:', result.ingest_outbox_pending);
+      console.log('Inbox counts:', JSON.stringify(result.inbox_counts));
+      console.log('Domain outbox unpublished:', result.domain_outbox_unpublished);
+    }
   });
 
 program.parseAsync();

@@ -78,6 +78,9 @@ importers:
       '@mikro-orm/postgresql':
         specifier: ^6.5.2
         version: 6.5.2(@mikro-orm/core@6.5.2)
+      '@types/commander':
+        specifier: ^2.12.5
+        version: 2.12.5
       commander:
         specifier: ^12.1.0
         version: 12.1.0
@@ -125,6 +128,9 @@ importers:
 
   packages/dispatch:
     dependencies:
+      '@good-indexer/metrics':
+        specifier: workspace:*
+        version: link:../metrics
       '@good-indexer/storage-postgres':
         specifier: workspace:*
         version: link:../storage-postgres
@@ -156,9 +162,15 @@ importers:
 
   packages/executor-evm:
     dependencies:
+      '@good-indexer/metrics':
+        specifier: workspace:*
+        version: link:../metrics
       '@good-indexer/storage-postgres':
         specifier: workspace:*
         version: link:../storage-postgres
+      '@manypkg/find-root':
+        specifier: ^2.2.3
+        version: 2.2.3
       '@mikro-orm/core':
         specifier: ^6.5.2
         version: 6.5.2
@@ -168,9 +180,6 @@ importers:
       '@mikro-orm/postgresql':
         specifier: ^6.5.2
         version: 6.5.2(@mikro-orm/core@6.5.2)
-      viem:
-        specifier: ^2.21.25
-        version: 2.37.5(typescript@5.9.2)(zod@3.25.76)
     devDependencies:
       '@types/node':
         specifier: ^20.14.12
@@ -202,6 +211,9 @@ importers:
 
   packages/ingest:
     dependencies:
+      '@good-indexer/metrics':
+        specifier: workspace:*
+        version: link:../metrics
       '@good-indexer/storage-postgres':
         specifier: workspace:*
         version: link:../storage-postgres
@@ -226,6 +238,21 @@ importers:
       zod:
         specifier: ^3.23.8
         version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^20.14.12
+        version: 20.19.13
+      tsup:
+        specifier: ^8.3.0
+        version: 8.5.0(tsx@4.20.5)(typescript@5.9.2)
+      tsx:
+        specifier: ^4.19.0
+        version: 4.20.5
+      typescript:
+        specifier: ^5.6.2
+        version: 5.9.2
+
+  packages/metrics:
     devDependencies:
       '@types/node':
         specifier: ^20.14.12
@@ -746,6 +773,10 @@ packages:
 
   '@types/argparse@1.0.38':
     resolution: {integrity: sha512-ebDJ9b0e702Yr7pWgB0jzm+CX4Srzz8RcXtLJDJB+BSccqMa36uyH/zUsSYao5+BD1ytv3k3rPYCq4mAE1hsXA==}
+
+  '@types/commander@2.12.5':
+    resolution: {integrity: sha512-YXGZ/rz+s57VbzcvEV9fUoXeJlBt5HaKu5iUheiIWNsJs23bz6AnRuRiZBRVBLYyPnixNvVnuzM5pSaxr8Yp/g==}
+    deprecated: This is a stub types definition. commander provides its own type definitions, so you do not need this installed.
 
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
@@ -2242,6 +2273,10 @@ snapshots:
   '@tsconfig/node16@1.0.4': {}
 
   '@types/argparse@1.0.38': {}
+
+  '@types/commander@2.12.5':
+    dependencies:
+      commander: 12.1.0
 
   '@types/estree@1.0.8': {}
 

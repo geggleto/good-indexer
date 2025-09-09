@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@good-indexer/storage-postgres": "workspace:*",
+    "@good-indexer/metrics": "workspace:*",
     "@manypkg/find-root": "^2.2.3",
     "@mikro-orm/core": "^6.5.2",
     "@mikro-orm/knex": "^6.2.9",

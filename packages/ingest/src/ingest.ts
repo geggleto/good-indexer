@@ -1,11 +1,14 @@
+/// <reference types="node" />
 import { MikroORM } from '@mikro-orm/core';
 import pg from '@mikro-orm/postgresql';
-import { resolve } from 'node:path';
+import { resolve } from 'path';
 import { findRootSync } from '@manypkg/find-root';
 import { RpcReadClient, bigIntToHex, Log, GetLogsParams } from './rpc.js';
 import { IngestConfig } from './config.js';
 import { stablePartitionKey } from './util/hash.js';
 import { TokenBucket, CircuitBreaker } from './resilience.js';
+import { Counter, Histogram, Gauge, MetricsRegistry, MetricsServer } from '../../metrics/src/index.js';
+import { setTimeout as delayMs } from 'timers/promises';
 
 export type Subscription = { address?: string; topic0?: string };
 
@@ -17,6 +20,16 @@ export class IngestDaemon {
   private bucketGetLogs: TokenBucket;
   private bucketBlockNumber: TokenBucket;
   private cb: CircuitBreaker;
+  private registry: MetricsRegistry;
+  private metrics: {
+    rpcRequests: Counter;
+    rpcErrors: Counter;
+    getLogsDuration: Histogram;
+    blockNumberDuration: Histogram;
+    backlogGauge: Gauge;
+    cbOpenSeconds: Gauge;
+  };
+  private metricsServer?: MetricsServer;
 
   constructor(config: IngestConfig) {
     this.config = config;
@@ -24,6 +37,15 @@ export class IngestDaemon {
     this.bucketGetLogs = new TokenBucket(config.rpcRpsMaxGetLogs);
     this.bucketBlockNumber = new TokenBucket(config.rpcRpsMaxBlockNumber);
     this.cb = new CircuitBreaker();
+    this.registry = new MetricsRegistry();
+    this.metrics = {
+      rpcRequests: this.registry.register(new Counter('rpc_requests_total', 'RPC requests by method')),
+      rpcErrors: this.registry.register(new Counter('rpc_errors_total', 'RPC errors by method')),
+      getLogsDuration: this.registry.register(new Histogram('getlogs_duration_ms', 'eth_getLogs duration ms')),
+      blockNumberDuration: this.registry.register(new Histogram('blocknumber_duration_ms', 'eth_blockNumber duration ms')),
+      backlogGauge: this.registry.register(new Gauge('indexer_backlog', 'Backlog blocks by shard')),
+      cbOpenSeconds: this.registry.register(new Gauge('cb_open_seconds', 'Circuit breaker open seconds by pool')),
+    };
   }
 
   async initOrm(): Promise<void> {
@@ -44,6 +66,10 @@ export class IngestDaemon {
     const conn = em.getConnection();
     const cursorId = `default:${shardLabel}`;
 
+    // Expose metrics/health endpoints
+    this.metricsServer = new MetricsServer(this.registry);
+    this.metricsServer.start();
+
     // Ensure cursor row exists (idempotent)
     await conn.execute(
       `INSERT INTO infra.cursors (id, last_processed_block) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING`,
@@ -54,16 +80,29 @@ export class IngestDaemon {
     while (this.running) {
       try {
         await this.bucketBlockNumber.take();
-        const head = await this.cb.execute(() => this.rpc.getBlockNumber(1000));
+        const t0 = Date.now();
+        this.metrics.rpcRequests.inc({ method: 'blockNumber' });
+        const head = await this.cb.execute(() => this.rpc.getBlockNumber(1000)).catch((e) => {
+          this.metrics.rpcErrors.inc({ method: 'blockNumber' });
+          this.metrics.blockNumberDuration.observe({ method: 'blockNumber' }, Date.now() - t0);
+          throw e;
+        });
+        this.metrics.blockNumberDuration.observe({ method: 'blockNumber' }, Date.now() - t0);
 
         const rows = (await conn.execute(
           `SELECT last_processed_block FROM infra.cursors WHERE id = $1`,
           [cursorId]
         )) as Array<{ last_processed_block: string }>;
         const hwm = rows.length > 0 ? BigInt(rows[0].last_processed_block) : 0n;
+        if (head >= hwm) {
+          const backlog = Number(head - hwm);
+          this.metrics.backlogGauge.set({ shard: shardLabel }, backlog);
+        }
+        // Update CB open seconds gauge for read pool
+        this.metrics.cbOpenSeconds.set({ pool: 'read' }, this.cb.getOpenRemainingSeconds());
 
         if (head <= hwm) {
-          await delay(this.config.pollIntervalMs);
+          await delayMs(this.config.pollIntervalMs);
           continue;
         }
 
@@ -74,7 +113,15 @@ export class IngestDaemon {
         const logsBatches = await Promise.all(
           filters.map(async (filter) => {
             await this.bucketGetLogs.take();
-            return this.cb.execute(() => this.rpc.getLogs(filter, 15000));
+            const t1 = Date.now();
+            this.metrics.rpcRequests.inc({ method: 'getLogs' });
+            const res = await this.cb.execute(() => this.rpc.getLogs(filter, 15000)).catch((e) => {
+              this.metrics.rpcErrors.inc({ method: 'getLogs' });
+              this.metrics.getLogsDuration.observe({ method: 'getLogs' }, Date.now() - t1);
+              throw e;
+            });
+            this.metrics.getLogsDuration.observe({ method: 'getLogs' }, Date.now() - t1);
+            return res;
           })
         );
         const logs = logsBatches.flat();
@@ -87,7 +134,7 @@ export class IngestDaemon {
         // eslint-disable-next-line no-console
         console.error('ingest loop error', err);
         step = Math.max(Math.floor(step / 2), this.config.getLogsStepMin);
-        await delay(this.config.pollIntervalMs);
+        await delayMs(this.config.pollIntervalMs);
       }
     }
   }
@@ -188,6 +235,6 @@ function computePartitionKey(address: string, shards: number): string {
 }
 
 function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return delayMs(ms) as unknown as Promise<void>;
 }
 

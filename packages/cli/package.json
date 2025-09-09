@@ -18,6 +18,7 @@
     "@good-indexer/executor-evm": "workspace:*",
     "@good-indexer/ingest": "workspace:*",
     "@good-indexer/storage-postgres": "workspace:*",
+    "@types/commander": "^2.12.5",
     "@manypkg/find-root": "^2.2.3",
     "@mikro-orm/core": "^6.5.2",
     "@mikro-orm/migrations": "^6.2.9",

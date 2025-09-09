@@ -76,6 +76,12 @@ export class CircuitBreaker {
       this.failureCount = 0;
     }
   }
+
+  getOpenRemainingSeconds(): number {
+    const now = Date.now();
+    if (this.openUntil <= now) return 0;
+    return Math.ceil((this.openUntil - now) / 1000);
+  }
 }
 
 function delay(ms: number): Promise<void> {
