@@ -25,7 +25,7 @@
       "@good-indexer/examples-erc20-transfers": ["examples/erc20-transfers/src/index.ts"],
       "@good-indexer/adapters-evm": ["packages/adapters-evm/src/index.ts"]
     },
-    "types": ["node"],
+    "types": ["node", "vitest/globals"],
     "experimentalDecorators": true,
     "emitDecoratorMetadata": false,
     "useDefineForClassFields": false
