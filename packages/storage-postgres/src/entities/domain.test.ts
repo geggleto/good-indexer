@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { DomainOutboxEntity } from './domain';
+import { DomainOutboxEntity } from './domain.js';
 
 describe('DomainOutboxEntity', () => {
   it('should create a domain outbox entity with required properties', () => {

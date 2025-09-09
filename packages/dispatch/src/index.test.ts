@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 
 describe('Dispatch Module', () => {
   it('should export Dispatcher class', () => {
-    expect(() => import('./index')).not.toThrow();
+    expect(() => import('./index.js')).not.toThrow();
   });
 
   it('should handle configuration types', () => {

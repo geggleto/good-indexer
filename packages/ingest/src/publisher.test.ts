@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 
 describe('IngestPublisher', () => {
   it('should export IngestPublisher class', () => {
-    expect(() => import('./publisher')).not.toThrow();
+    expect(() => import('./publisher.js')).not.toThrow();
   });
 
   it('should handle constructor parameters', () => {

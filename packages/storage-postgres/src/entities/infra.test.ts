@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { InfraCursorEntity, InfraIngestEventEntity, InfraIngestOutboxEntity, InfraInboxEntity } from './infra';
+import { InfraCursorEntity, InfraIngestEventEntity, InfraIngestOutboxEntity, InfraInboxEntity } from './infra.js';
 
 describe('InfraCursorEntity', () => {
   it('should create a cursor entity with required properties', () => {

@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 describe('CLI Module', () => {
   it('should export commander program', () => {
     // This is a simple test to ensure the module can be imported
-    expect(() => import('./index')).not.toThrow();
+    expect(() => import('./index.js')).not.toThrow();
   });
 
   it('should handle environment variables', () => {

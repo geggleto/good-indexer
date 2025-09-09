@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { configSchema } from './config';
+import { configSchema } from './config.js';
 
 describe('IngestConfig', () => {
-  let originalEnv: NodeJS.ProcessEnv;
+  let originalEnv: Record<string, string | undefined>;
 
   beforeEach(() => {
     originalEnv = { ...process.env };
@@ -121,7 +121,7 @@ describe('IngestConfig', () => {
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.issues[0].code).toBe('invalid_string');
-      expect(result.error.issues[0].validation).toBe('url');
+      expect((result.error.issues[0] as any).validation).toBe('url');
     }
   });
 
