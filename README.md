@@ -150,35 +150,100 @@ flowchart LR
     RPCW["Write Pool<br/>(CB + retries + token bucket)"]
   end
 
-  subgraph Ingest["Ingestion"]
-    I["Ingest Daemon<br/>poll blockNumber / getLogs<br/>adaptive ranges"]
+  subgraph Services["Service Layer (DI)"]
+    RPC_SVC["RpcReadClientService"]
+    TB_SVC["TokenBucketService"]
+    CB_SVC["CircuitBreakerService"]
+    METRICS_SVC["MetricsRegistryService"]
+    ORM_SVC["MikroORMService"]
+  end
+
+  subgraph Ingest["Ingestion (packages/ingest)"]
+    I["IngestDaemon<br/>orchestrates components"]
+    BF["BlockFetcher<br/>RPC block number fetching"]
+    LF["LogFetcher<br/>RPC log fetching"]
+    CM["CursorManager<br/>database cursor ops"]
+    BP["BatchProcessor<br/>log batch processing"]
+    SM["StepManager<br/>adaptive step sizing"]
+    IL["IngestLoop<br/>main orchestration"]
+    IP["IngestPublisher<br/>publishes to outbox"]
     EV[("infra.ingest_events")]
-    IO[("infra.ingest_outbox")]
+    IO[("infra.ingest_outbox<br/>acts as message bus")]
     CUR[("infra.cursors")]
   end
 
-  subgraph Dispatch["Dispatch & Domains"]
-    BUS[["Bus / Internal Queue<br/>partitioned by partition_key"]]
-    D["Dispatcher"]
-    INBOX[("infra.inbox")]
-    DOX[("domain.domain_outbox")]
+  subgraph Dispatch["Dispatch (packages/dispatch)"]
+    D["Dispatcher<br/>consumes from outbox"]
+    INBOX[("infra.inbox<br/>handler idempotency")]
+    DOX[("domain.domain_outbox<br/>on-chain commands")]
   end
 
-  subgraph Exec["Chain Executor"]
-    EX["Executor<br/>reads domain_outbox<br/>sends tx, writes tx_hash"]
+  subgraph Exec["Chain Executor (packages/executor-evm)"]
+    EX["EvmExecutor<br/>reads domain_outbox<br/>sends tx, writes tx_hash"]
   end
 
-  RPCR -->|"getLogs, blockNumber"| I
-  I -->|"INSERT batch"| EV
-  I -->|"INSERT batch"| IO
-  I -->|"UPDATE"| CUR
-  IO -->|"publish exactly once"| BUS
-  BUS --> D
+  subgraph Support["Supporting Packages"]
+    CORE["packages/core<br/>types & runtime"]
+    METRICS["packages/metrics<br/>observability"]
+    CLI["packages/cli<br/>command interface"]
+    STORAGE["packages/storage-postgres<br/>database entities"]
+  end
+
+  %% RPC to Services
+  RPCR --> RPC_SVC
+  RPCW --> RPC_SVC
+
+  %% Services to Ingest
+  RPC_SVC --> BF
+  RPC_SVC --> LF
+  TB_SVC --> BF
+  TB_SVC --> LF
+  CB_SVC --> BF
+  CB_SVC --> LF
+  METRICS_SVC --> I
+  ORM_SVC --> I
+
+  %% Ingest internal flow
+  I --> BF
+  I --> LF
+  I --> CM
+  I --> BP
+  I --> SM
+  I --> IL
+  I --> IP
+  BF --> IL
+  LF --> IL
+  CM --> IL
+  BP --> IL
+  SM --> IL
+  IL --> EV
+  IL --> IO
+  IL --> CUR
+  IP --> IO
+
+  %% Ingest to Dispatch
+  IO -->|"publish exactly once"| D
   D -->|"run handler"| INBOX
   D -->|"on-chain command (tx needed)"| DOX
+
+  %% Executor flow
   EX -->|"read pending"| DOX
   EX -->|"send tx"| RPCW
   EX -->|"mark tx_hash"| DOX
+
+  %% Supporting packages
+  CORE --> I
+  CORE --> D
+  CORE --> EX
+  METRICS --> I
+  METRICS --> D
+  METRICS --> EX
+  STORAGE --> I
+  STORAGE --> D
+  STORAGE --> EX
+  CLI --> I
+  CLI --> D
+  CLI --> EX
 ```
 
 # Data Model
