@@ -1,5 +1,11 @@
 # Abstract Chain Indexer
 
+## Tests
+
+- Run unit tests: `pnpm test`
+- Watch mode: `pnpm test:watch`
+- Coverage: `pnpm coverage`
+
 A fast, boring, and correct indexer for Abstract (or any finality-in-seconds EVM chain).
 Built to survive flaky RPC providers, restarts, and operator error — without wasting API credits.
 
