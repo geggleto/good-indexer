@@ -224,6 +224,12 @@ CREATE INDEX IF NOT EXISTS ix_inbox_block_number
 - [ ] CLI: `gx replay`, `gx dlq`, `gx status`.
 - Acceptance: junior operator can drain DLQ and replay a range without code changes.
 
+### Milestone 6 — Adapters Extraction
+- [ ] Extract RPC read client and resilience utilities into `packages/adapters-evm`.
+- [ ] Refactor `packages/ingest` and `packages/cli` to consume `@good-indexer/adapters-evm`.
+- [ ] Update workspace deps and tsconfig path mappings for local builds.
+- Acceptance: typecheck passes across workspaces; `gx run ingest|publisher|dispatch|executor` and `gx status` work unchanged.
+
 ---
 ## 9) Agent Prompts (copy/paste)
 

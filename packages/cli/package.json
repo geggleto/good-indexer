@@ -13,6 +13,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@good-indexer/adapters-evm": "workspace:*",
     "@good-indexer/dispatch": "workspace:*",
     "@good-indexer/examples-erc20-transfers": "workspace:*",
     "@good-indexer/executor-evm": "workspace:*",

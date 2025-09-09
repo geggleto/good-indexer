@@ -12,6 +12,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@good-indexer/adapters-evm": "workspace:*",
     "@good-indexer/storage-postgres": "workspace:*",
     "@good-indexer/metrics": "workspace:*",
     "@mikro-orm/core": "^6.5.2",

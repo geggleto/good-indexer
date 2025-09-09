@@ -12,6 +12,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@good-indexer/adapters-evm": "workspace:*",
     "@good-indexer/dispatch": "workspace:*",
     "@mikro-orm/core": "^6.2.9",
     "@mikro-orm/migrations": "^6.2.9",
