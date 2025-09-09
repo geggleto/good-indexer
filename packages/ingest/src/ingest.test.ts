@@ -1,4 +1,21 @@
 import { describe, it, expect } from 'vitest';
+import { vi } from 'vitest';
+vi.mock('@mikro-orm/core', () => ({}));
+vi.mock('@mikro-orm/postgresql', () => ({}));
+vi.mock('@good-indexer/metrics', () => ({
+  Counter: class { inc() {} render() { return ''; } },
+  Histogram: class { observe() {} render() { return ''; } },
+  Gauge: class { set() {} render() { return ''; } },
+  MetricsRegistry: class { register(x: any) { return x; } render() { return ''; } },
+  MetricsServer: class { start() {} stop() {} },
+}));
+vi.mock('@manypkg/find-root', () => ({ findRootSync: () => ({ rootDir: '' }) }));
+vi.mock('@good-indexer/adapters-evm', () => ({
+  bigIntToHex: (value: bigint) => '0x' + value.toString(16),
+  RpcReadClient: class {},
+  TokenBucket: class { async take() {} },
+  CircuitBreaker: class { async execute<T>(fn: () => Promise<T>) { return fn(); } getOpenRemainingSeconds() { return 0; } },
+}));
 import { buildFilters, buildEventRow } from './ingest.js';
 import { stablePartitionKey } from './util/hash.js';
 

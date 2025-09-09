@@ -10,10 +10,17 @@ export default defineConfig({
       '**/build/**',
     ],
     coverage: {
-      enabled: false,
+      enabled: true,
       provider: 'v8',
-      reporter: ['text', 'html'],
-      exclude: ['**/migrations/**', '**/src/index.ts'],
+      reporter: ['text', 'html', 'lcov'],
+      reportsDirectory: './coverage',
+      include: ['packages/**/src/**/*.ts', 'examples/**/src/**/*.ts'],
+      exclude: [
+        '**/*.test.ts',
+        '**/migrations/**',
+        '**/src/index.ts',
+        '**/src/**/index.ts',
+      ],
     },
   },
 });
