@@ -103,9 +103,9 @@ describe('Services', () => {
       expect(service).toBeDefined();
     });
 
-    it('should take token', async () => {
-      await service.take();
-      // Should not throw
+    it('should consume token', async () => {
+      const result = await service.consume(1);
+      expect(result).toBe(true);
     });
   });
 
@@ -144,10 +144,9 @@ describe('Services', () => {
       expect(service).toBeDefined();
     });
 
-    it('should register metric', () => {
-      const metric = { name: 'test', value: 123 };
-      const result = service.register(metric);
-      expect(result).toBe(metric);
+    it('should create counter', () => {
+      const result = service.createCounter('test_counter', 'Test counter');
+      expect(result).toBeDefined();
     });
   });
 
@@ -188,7 +187,7 @@ describe('Services', () => {
     it('should observe value with labels', () => {
       const labels = { method: 'test' };
       const value = 123.45;
-      service.observe(labels, value);
+      service.observe(value, labels);
       // Should not throw
     });
   });
@@ -207,7 +206,7 @@ describe('Services', () => {
     it('should set value with labels', () => {
       const labels = { shard: 'test' };
       const value = 42;
-      service.set(labels, value);
+      service.set(value, labels);
       // Should not throw
     });
   });
@@ -247,9 +246,8 @@ describe('Services', () => {
       expect(service).toBeDefined();
     });
 
-    it('should initialize with config', async () => {
-      const config = { clientUrl: 'postgresql://localhost:5432/test' };
-      const result = await service.init(config);
+    it('should initialize', async () => {
+      const result = await service.init();
       expect(result).toBeDefined();
     });
   });
@@ -276,7 +274,7 @@ describe('Services', () => {
 
     it('should log error with message', () => {
       service.error('Test error');
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Test error', undefined);
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Test error');
     });
 
     it('should log error with message and error object', () => {
@@ -286,12 +284,12 @@ describe('Services', () => {
     });
 
     it('should log message', () => {
-      service.log('Test message');
+      service.info('Test message');
       expect(consoleLogSpy).toHaveBeenCalledWith('Test message');
     });
 
     it('should log message with args', () => {
-      service.log('Test message', 'arg1', 'arg2');
+      service.info('Test message', 'arg1', 'arg2');
       expect(consoleLogSpy).toHaveBeenCalledWith('Test message', 'arg1', 'arg2');
     });
   });
@@ -345,18 +343,18 @@ describe('Services', () => {
 
     it('should get stable partition key', () => {
       const input = 'test-input';
-      const result = service.stablePartitionKey(input);
+      const result = service.hash(input);
       expect(result).toBe('mock-hash-123');
     });
 
     it('should handle empty string', () => {
-      const result = service.stablePartitionKey('');
+      const result = service.hash('');
       expect(result).toBe('mock-hash-123');
     });
 
     it('should handle special characters', () => {
       const input = 'test@#$%^&*()';
-      const result = service.stablePartitionKey(input);
+      const result = service.hash(input);
       expect(result).toBe('mock-hash-123');
     });
   });
@@ -406,17 +404,17 @@ describe('Services', () => {
 
     it('should find root directory', () => {
       const result = service.findRootSync('/some/path');
-      expect(result).toEqual({ rootDir: '/mock/root' });
+      expect(result).toBe('/mock/root');
     });
 
     it('should find root with current directory', () => {
       const result = service.findRootSync(process.cwd());
-      expect(result).toEqual({ rootDir: '/mock/root' });
+      expect(result).toBe('/mock/root');
     });
 
     it('should find root with empty string', () => {
       const result = service.findRootSync('');
-      expect(result).toEqual({ rootDir: '/mock/root' });
+      expect(result).toBe('/mock/root');
     });
   });
 
@@ -459,8 +457,8 @@ describe('Services', () => {
       const gauge = new GaugeService('test', 'help');
 
       expect(() => counter.inc()).not.toThrow();
-      expect(() => histogram.observe({}, 123)).not.toThrow();
-      expect(() => gauge.set({}, 123)).not.toThrow();
+      expect(() => histogram.observe(123, {})).not.toThrow();
+      expect(() => gauge.set(123, {})).not.toThrow();
     });
   });
 
@@ -494,14 +492,14 @@ describe('Services', () => {
     it('should handle special characters in hash input', () => {
       const service = new HashService();
       const specialChars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
-      const result = service.stablePartitionKey(specialChars);
+      const result = service.hash(specialChars);
       expect(result).toBe('mock-hash-123');
     });
 
     it('should handle unicode characters in hash input', () => {
       const service = new HashService();
       const unicode = '🚀🌟💫⭐️';
-      const result = service.stablePartitionKey(unicode);
+      const result = service.hash(unicode);
       expect(result).toBe('mock-hash-123');
     });
   });

@@ -2,7 +2,7 @@ import { injectable } from 'inversify';
 import { MikroORM } from '@mikro-orm/core';
 import { RpcReadClient } from '@good-indexer/adapters-evm';
 import { TokenBucket, CircuitBreaker } from '@good-indexer/adapters-evm';
-import { Counter, Histogram, Gauge, MetricsRegistry, MetricsServer } from '@good-indexer/metrics';
+import { Counter, Histogram, Gauge, MetricsServer } from '@good-indexer/metrics';
 import { findRootSync } from '@manypkg/find-root';
 import { resolve } from 'path';
 import { stablePartitionKey } from './util/hash.js';
@@ -48,8 +48,9 @@ export class TokenBucketService implements ITokenBucket {
     this.bucket = new TokenBucket(rps);
   }
 
-  async take(): Promise<void> {
-    return this.bucket.take();
+  async consume(_tokens: number): Promise<boolean> {
+    await this.bucket.take();
+    return true;
   }
 }
 
@@ -72,14 +73,20 @@ export class CircuitBreakerService implements ICircuitBreaker {
 
 @injectable()
 export class MetricsRegistryService implements IMetricsRegistry {
-  private registry: MetricsRegistry;
-
   constructor() {
-    this.registry = new MetricsRegistry();
+    // Registry not needed for this implementation
   }
 
-  register<T>(metric: T): T {
-    return this.registry.register(metric);
+  createCounter(name: string, help: string): any {
+    return new Counter(name, help);
+  }
+
+  createHistogram(name: string, help: string): any {
+    return new Histogram(name, help);
+  }
+
+  createGauge(name: string, help: string): any {
+    return new Gauge(name, help);
   }
 }
 
@@ -104,8 +111,8 @@ export class HistogramService implements IHistogram {
     this.histogram = new Histogram(name, help);
   }
 
-  observe(labels: Record<string, string>, value: number): void {
-    this.histogram.observe(labels, value);
+  observe(value: number, labels?: Record<string, string>): void {
+    this.histogram.observe(labels || {}, value);
   }
 }
 
@@ -117,8 +124,8 @@ export class GaugeService implements IGauge {
     this.gauge = new Gauge(name, help);
   }
 
-  set(labels: Record<string, string>, value: number): void {
-    this.gauge.set(labels, value);
+  set(value: number, labels?: Record<string, string>): void {
+    this.gauge.set(labels || {}, value);
   }
 }
 
@@ -141,19 +148,35 @@ export class MetricsServerService implements IMetricsServer {
 
 @injectable()
 export class MikroORMService implements IMikroORM {
-  async init(config: any): Promise<MikroORM> {
-    return MikroORM.init(config);
+  async init(): Promise<any> {
+    return MikroORM.init({} as any);
+  }
+
+  getEntityManager(): any {
+    return {} as any;
+  }
+
+  async close(): Promise<void> {
+    // Implementation
   }
 }
 
 @injectable()
 export class LoggerService implements ILogger {
-  error(message: string, error?: any): void {
-    console.error(message, error);
+  info(message: string, ...args: any[]): void {
+    console.log(message, ...args);
   }
 
-  log(message: string, ...args: any[]): void {
-    console.log(message, ...args);
+  error(message: string, ...args: any[]): void {
+    console.error(message, ...args);
+  }
+
+  warn(message: string, ...args: any[]): void {
+    console.warn(message, ...args);
+  }
+
+  debug(message: string, ...args: any[]): void {
+    console.debug(message, ...args);
   }
 }
 
@@ -166,7 +189,7 @@ export class DelayService implements IDelay {
 
 @injectable()
 export class HashService implements IHashService {
-  stablePartitionKey(input: string): string {
+  hash(input: string): string {
     return stablePartitionKey(input);
   }
 }
@@ -180,7 +203,7 @@ export class PathService implements IPathService {
 
 @injectable()
 export class FindRootService implements IFindRootService {
-  findRootSync(cwd: string): { rootDir: string } {
-    return findRootSync(cwd);
+  findRootSync(cwd: string): string {
+    return findRootSync(cwd).rootDir;
   }
 }

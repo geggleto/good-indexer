@@ -5,12 +5,12 @@ import {
   PublisherLoop,
   IngestPublisher,
   createIngestPublisher,
-  type DatabaseConnection,
+  type PublisherDatabaseConnection,
   type PublisherDependencies,
 } from './publisher.js';
 
 describe('EventProcessor', () => {
-  let mockConnection: DatabaseConnection;
+  let mockConnection: PublisherDatabaseConnection;
   let mockLogger: PublisherDependencies['logger'];
   let eventProcessor: EventProcessor;
 
@@ -55,7 +55,7 @@ describe('EventProcessor', () => {
     it('should handle database update errors gracefully', async () => {
       const mockOnPublish = vi.fn().mockRejectedValue(new Error('Publish failed'));
       const eventId = 'test-event-123';
-      mockConnection.execute
+      (mockConnection.execute as any)
         .mockRejectedValueOnce(new Error('Database error')); // Update fails
 
       await eventProcessor.processEvent(eventId, mockOnPublish);
@@ -68,7 +68,7 @@ describe('EventProcessor', () => {
 });
 
 describe('EventFetcher', () => {
-  let mockConnection: DatabaseConnection;
+  let mockConnection: PublisherDatabaseConnection;
   let eventFetcher: EventFetcher;
 
   beforeEach(() => {
@@ -84,7 +84,7 @@ describe('EventFetcher', () => {
         { event_id: 'event1' },
         { event_id: 'event2' },
       ];
-      mockConnection.execute.mockResolvedValue(mockEvents);
+      (mockConnection.execute as any).mockResolvedValue(mockEvents);
 
       const result = await eventFetcher.fetchUnpublishedEvents();
 
@@ -98,7 +98,7 @@ describe('EventFetcher', () => {
     it('should fetch events with custom batch size', async () => {
       const customFetcher = new EventFetcher(mockConnection, 50);
       const mockEvents = [{ event_id: 'event1' }];
-      mockConnection.execute.mockResolvedValue(mockEvents);
+      (mockConnection.execute as any).mockResolvedValue(mockEvents);
 
       const result = await customFetcher.fetchUnpublishedEvents();
 
@@ -110,7 +110,7 @@ describe('EventFetcher', () => {
     });
 
     it('should return empty array when no events', async () => {
-      mockConnection.execute.mockResolvedValue([]);
+      (mockConnection.execute as any).mockResolvedValue([]);
 
       const result = await eventFetcher.fetchUnpublishedEvents();
 
@@ -118,7 +118,7 @@ describe('EventFetcher', () => {
     });
 
     it('should handle database errors', async () => {
-      mockConnection.execute.mockRejectedValue(new Error('Database error'));
+      (mockConnection.execute as any).mockRejectedValue(new Error('Database error'));
 
       await expect(eventFetcher.fetchUnpublishedEvents()).rejects.toThrow('Database error');
     });
@@ -148,7 +148,7 @@ describe('PublisherLoop', () => {
         { event_id: 'event1' },
         { event_id: 'event2' },
       ];
-      mockEventFetcher.fetchUnpublishedEvents
+      (mockEventFetcher.fetchUnpublishedEvents as any)
         .mockResolvedValueOnce(mockEvents)
         .mockResolvedValueOnce([]);
       
@@ -168,7 +168,7 @@ describe('PublisherLoop', () => {
     });
 
     it('should delay when no events available', async () => {
-      mockEventFetcher.fetchUnpublishedEvents.mockResolvedValue([]);
+      (mockEventFetcher.fetchUnpublishedEvents as any).mockResolvedValue([]);
       
       const mockOnPublish = vi.fn().mockResolvedValue(undefined);
       let callCount = 0;
@@ -197,9 +197,9 @@ describe('PublisherLoop', () => {
     it('should handle multiple batches', async () => {
       const firstBatch = [{ event_id: 'event1' }];
       const secondBatch = [{ event_id: 'event2' }];
-      const emptyBatch = [];
+      const emptyBatch: any[] = [];
       
-      mockEventFetcher.fetchUnpublishedEvents
+      (mockEventFetcher.fetchUnpublishedEvents as any)
         .mockResolvedValueOnce(firstBatch)
         .mockResolvedValueOnce(secondBatch)
         .mockResolvedValueOnce(emptyBatch);

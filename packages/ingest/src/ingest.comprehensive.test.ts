@@ -17,8 +17,8 @@ import {
   type CircuitBreakerService,
   type MetricsService,
   type DelayService,
-  type IngestConfig,
 } from './ingest.js';
+import { type IngestConfig } from './config.js';
 
 describe('BlockFetcher', () => {
   let mockRpc: RpcClient;
@@ -30,6 +30,7 @@ describe('BlockFetcher', () => {
   beforeEach(() => {
     mockRpc = {
       getBlockNumber: vi.fn().mockResolvedValue(12345n),
+      getLogs: vi.fn().mockResolvedValue([]),
     };
     mockBucket = {
       take: vi.fn().mockResolvedValue(undefined),
@@ -66,7 +67,7 @@ describe('BlockFetcher', () => {
 
     it('should handle RPC errors', async () => {
       const error = new Error('RPC failed');
-      mockCircuitBreaker.execute.mockRejectedValueOnce(error);
+      (mockCircuitBreaker.execute as any).mockRejectedValueOnce(error);
 
       await expect(blockFetcher.getCurrentBlock()).rejects.toThrow('RPC failed');
 
@@ -88,6 +89,7 @@ describe('LogFetcher', () => {
 
   beforeEach(() => {
     mockRpc = {
+      getBlockNumber: vi.fn().mockResolvedValue(12345n),
       getLogs: vi.fn().mockResolvedValue([]),
     };
     mockBucket = {
@@ -110,8 +112,17 @@ describe('LogFetcher', () => {
 
   describe('fetchLogs', () => {
     it('should fetch logs successfully', async () => {
-      const mockLogs = [{ blockNumber: '0x1', logIndex: '0x0', transactionIndex: '0x0', blockHash: '0x123', address: '0xabc', topics: ['0xdef'] }];
-      mockRpc.getLogs.mockResolvedValue(mockLogs);
+      const mockLogs = [{ 
+        blockNumber: '0x1', 
+        logIndex: '0x0', 
+        transactionIndex: '0x0', 
+        blockHash: '0x123', 
+        address: '0xabc', 
+        topics: ['0xdef'],
+        data: '0x',
+        transactionHash: '0x456'
+      }];
+      (mockRpc.getLogs as any).mockResolvedValue(mockLogs);
       
       const filters = [
         { fromBlock: '0x1', toBlock: '0x2' },
@@ -129,7 +140,7 @@ describe('LogFetcher', () => {
 
     it('should handle RPC errors', async () => {
       const error = new Error('RPC failed');
-      mockCircuitBreaker.execute.mockRejectedValueOnce(error);
+      (mockCircuitBreaker.execute as any).mockRejectedValueOnce(error);
 
       const filters = [{ fromBlock: '0x1', toBlock: '0x2' }];
 
@@ -151,7 +162,7 @@ describe('CursorManager', () => {
   beforeEach(() => {
     mockConnection = {
       execute: vi.fn().mockResolvedValue(undefined),
-    };
+    } as any;
     cursorManager = new CursorManager(mockConnection);
   });
 
@@ -168,9 +179,9 @@ describe('CursorManager', () => {
 
   describe('getLastProcessedBlock', () => {
     it('should return last processed block', async () => {
-      mockConnection.execute.mockResolvedValueOnce([
-        { last_processed_block: '12345' }
-      ]);
+    (mockConnection.execute as any).mockResolvedValueOnce([
+      { last_processed_block: '12345' }
+    ]);
 
       const result = await cursorManager.getLastProcessedBlock('test-cursor');
 
@@ -182,7 +193,7 @@ describe('CursorManager', () => {
     });
 
     it('should return 0 if no cursor found', async () => {
-      mockConnection.execute.mockResolvedValueOnce([]);
+      (mockConnection.execute as any).mockResolvedValueOnce([]);
 
       const result = await cursorManager.getLastProcessedBlock('test-cursor');
 
@@ -237,7 +248,16 @@ describe('BatchProcessor', () => {
 
     it('should process batch with logs', async () => {
       const mockLogs = [
-        { blockNumber: '0x1', logIndex: '0x0', transactionIndex: '0x0', blockHash: '0x123', address: '0xabc', topics: ['0xdef'] }
+        { 
+          blockNumber: '0x1', 
+          logIndex: '0x0', 
+          transactionIndex: '0x0', 
+          blockHash: '0x123', 
+          address: '0xabc', 
+          topics: ['0xdef'],
+          data: '0x',
+          transactionHash: '0x456'
+        }
       ];
 
       await batchProcessor.processBatch(mockEntityManager, mockLogs, 12345n, 'test-cursor');
@@ -395,8 +415,8 @@ describe('IngestLoop', () => {
     });
 
     it('should delay when no new blocks', async () => {
-      mockBlockFetcher.getCurrentBlock.mockResolvedValueOnce(500n); // Same as hwm
-      mockCursorManager.getLastProcessedBlock.mockResolvedValueOnce(500n);
+      (mockBlockFetcher.getCurrentBlock as any).mockResolvedValueOnce(500n); // Same as hwm
+      (mockCursorManager.getLastProcessedBlock as any).mockResolvedValueOnce(500n);
 
       let callCount = 0;
       const shouldContinue = () => {
@@ -411,7 +431,7 @@ describe('IngestLoop', () => {
     });
 
     it('should handle errors and narrow step', async () => {
-      mockBlockFetcher.getCurrentBlock.mockRejectedValueOnce(new Error('RPC failed'));
+      (mockBlockFetcher.getCurrentBlock as any).mockRejectedValueOnce(new Error('RPC failed'));
 
       let callCount = 0;
       const shouldContinue = () => {
@@ -569,6 +589,8 @@ describe('Utility Functions', () => {
         blockHash: '0x123',
         address: '0xabc',
         topics: ['0xdef'],
+        data: '0x',
+        transactionHash: '0x456',
       };
       const result = buildEventRow(log, 4);
       
@@ -590,7 +612,9 @@ describe('Utility Functions', () => {
         transactionIndex: '0x0',
         blockHash: '0x123',
         address: '0xabc',
-        topics: undefined,
+        topics: [],
+        data: '0x',
+        transactionHash: '0x456',
       };
       const result = buildEventRow(log, 4);
       

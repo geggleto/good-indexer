@@ -5,7 +5,7 @@ import { findRootSync } from '@manypkg/find-root';
 import { setTimeout as delayMs } from 'timers/promises';
 
 // Interfaces for better testability
-export interface DatabaseConnection {
+export interface PublisherDatabaseConnection {
   execute(query: string, params?: any[]): Promise<any>;
 }
 
@@ -31,7 +31,7 @@ export interface PublisherDependencies {
 // Event processor class for handling individual events
 export class EventProcessor {
   constructor(
-    private connection: DatabaseConnection,
+    private connection: PublisherDatabaseConnection,
     private logger: PublisherDependencies['logger']
   ) {}
 
@@ -61,7 +61,7 @@ export class EventProcessor {
 // Event fetcher class for retrieving events from database
 export class EventFetcher {
   constructor(
-    private connection: DatabaseConnection,
+    private connection: PublisherDatabaseConnection,
     private batchSize: number = 500
   ) {}
 
