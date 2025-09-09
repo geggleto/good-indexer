@@ -1,13 +1,23 @@
 {
   "name": "good-indexer",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "private": true,
+  "version": "0.1.0",
+  "description": "Polling-only EVM indexer with exactly-once effects via Inbox/Outbox",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.0.0"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs"
+  "packageManager": "pnpm@9.12.3",
+  "type": "module",
+  "scripts": {
+    "build": "pnpm -r run build",
+    "dev": "pnpm -r run dev",
+    "lint": "pnpm -r run lint",
+    "typecheck": "pnpm -r run typecheck",
+    "prepare": "echo 'ok'"
+  },
+  "workspaces": [
+    "packages/*",
+    "examples/*"
+  ]
 }
