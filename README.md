@@ -146,39 +146,39 @@ Consumers are sharded by stable key (e.g., hash of chainId:address) to preserve 
 ```mermaid
 flowchart LR
   subgraph RPC["RPC Providers"]
-    RPCR[Read Pool<br/>(CB + retries + token bucket)]
-    RPCW[Write Pool<br/>(CB + retries + token bucket)]
+    RPCR["Read Pool<br/>(CB + retries + token bucket)"]
+    RPCW["Write Pool<br/>(CB + retries + token bucket)"]
   end
 
   subgraph Ingest["Ingestion"]
-    I[Ingest Daemon<br/>poll blockNumber / getLogs<br/>adaptive ranges]
-    EV[(infra.ingest_events)]
-    IO[(infra.ingest_outbox)]
-    CUR[(infra.cursors)]
+    I["Ingest Daemon<br/>poll blockNumber / getLogs<br/>adaptive ranges"]
+    EV[("infra.ingest_events")]
+    IO[("infra.ingest_outbox")]
+    CUR[("infra.cursors")]
   end
 
   subgraph Dispatch["Dispatch & Domains"]
-    BUS[[Bus / Internal Queue<br/>partitioned by partition_key]]
-    D[Dispatcher]
-    INBOX[(infra.inbox)]
-    DOX[(domain.domain_outbox)]
+    BUS[["Bus / Internal Queue<br/>partitioned by partition_key"]]
+    D["Dispatcher"]
+    INBOX[("infra.inbox")]
+    DOX[("domain.domain_outbox")]
   end
 
   subgraph Exec["Chain Executor"]
-    EX[Executor<br/>reads domain_outbox<br/>sends tx, writes tx_hash]
+    EX["Executor<br/>reads domain_outbox<br/>sends tx, writes tx_hash"]
   end
 
-  RPCR -->|getLogs, blockNumber| I
-  I -->|INSERT batch| EV
-  I -->|INSERT batch| IO
-  I -->|UPDATE| CUR
-  IO -->|publish exactly once| BUS
+  RPCR -->|"getLogs, blockNumber"| I
+  I -->|"INSERT batch"| EV
+  I -->|"INSERT batch"| IO
+  I -->|"UPDATE"| CUR
+  IO -->|"publish exactly once"| BUS
   BUS --> D
-  D -->|run handler| INBOX
-  D -->|on-chain command (tx needed)| DOX
-  EX -->|read pending| DOX
-  EX -->|send tx| RPCW
-  EX -->|mark tx_hash| DOX
+  D -->|"run handler"| INBOX
+  D -->|"on-chain command (tx needed)"| DOX
+  EX -->|"read pending"| DOX
+  EX -->|"send tx"| RPCW
+  EX -->|"mark tx_hash"| DOX
 ```
 
 # Data Model
