@@ -1,20 +1,8 @@
-type JsonRpcRequest = {
-  jsonrpc: '2.0';
-  id: number;
-  method: string;
-  params: unknown[];
-};
-
-type JsonRpcResponse<T> = {
-  jsonrpc: '2.0';
-  id: number;
-  result?: T;
-  error?: { code: number; message: string; data?: unknown };
-};
+import { createPublicClient, http } from 'viem';
 
 export type GetLogsParams = {
-  fromBlock: string; // hex
-  toBlock: string; // hex
+  fromBlock: string;
+  toBlock: string;
   address?: string | string[];
   topics?: (string | null | (string | null)[])[];
 };
@@ -22,54 +10,38 @@ export type GetLogsParams = {
 export type Log = {
   address: string;
   blockHash: string;
-  blockNumber: string; // hex
+  blockNumber: string;
   data: string;
-  logIndex: string; // hex
+  logIndex: string;
   topics: string[];
   transactionHash: string;
-  transactionIndex: string; // hex
+  transactionIndex: string;
 };
 
 export class RpcReadClient {
   private url: string;
-  private nextId = 1;
-
   constructor(url: string) {
     this.url = url;
   }
 
-  async call<T>(method: string, params: unknown[], timeoutMs: number): Promise<T> {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-    try {
-      const body: JsonRpcRequest = { jsonrpc: '2.0', id: this.nextId++, method, params };
-      const res = await fetch(this.url, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(body),
-        signal: controller.signal,
-      });
-      if (!res.ok) throw new Error(`rpc http ${res.status}`);
-      const json = (await res.json()) as JsonRpcResponse<T>;
-      if (json.error) throw new Error(`rpc error ${json.error.code}: ${json.error.message}`);
-      if (json.result === undefined) throw new Error('rpc missing result');
-      return json.result;
-    } finally {
-      clearTimeout(timer);
-    }
+  private makeClient(timeoutMs?: number) {
+    return createPublicClient({ transport: http(this.url, timeoutMs ? { timeout: timeoutMs } : {}) });
   }
 
-  getBlockNumber(timeoutMs: number): Promise<string> {
-    return this.call<string>('eth_blockNumber', [], timeoutMs);
+  async getBlockNumber(timeoutMs: number): Promise<bigint> {
+    const client = this.makeClient(timeoutMs);
+    const blockNumber = await client.getBlockNumber();
+    return blockNumber;
   }
 
-  getLogs(filter: GetLogsParams, timeoutMs: number): Promise<Log[]> {
-    return this.call<Log[]>('eth_getLogs', [filter], timeoutMs);
+  async getLogs(filter: GetLogsParams, timeoutMs: number): Promise<Log[]> {
+    const client = this.makeClient(timeoutMs);
+    const logs = (await (client.request as any)({
+      method: 'eth_getLogs',
+      params: [filter],
+    })) as Log[];
+    return logs;
   }
-}
-
-export function hexToBigInt(hex: string): bigint {
-  return BigInt(hex);
 }
 
 export function bigIntToHex(value: bigint): string {

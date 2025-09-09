@@ -2,7 +2,7 @@ import { MikroORM } from '@mikro-orm/core';
 import pg from '@mikro-orm/postgresql';
 import { resolve } from 'node:path';
 import { findRootSync } from '@manypkg/find-root';
-import { RpcReadClient, bigIntToHex, hexToBigInt, Log, GetLogsParams } from './rpc.js';
+import { RpcReadClient, bigIntToHex, Log, GetLogsParams } from './rpc.js';
 import { IngestConfig } from './config.js';
 import { stablePartitionKey } from './util/hash.js';
 import { TokenBucket, CircuitBreaker } from './resilience.js';
@@ -54,8 +54,7 @@ export class IngestDaemon {
     while (this.running) {
       try {
         await this.bucketBlockNumber.take();
-        const headHex = await this.cb.execute(() => this.rpc.getBlockNumber(1000));
-        const head = hexToBigInt(headHex);
+        const head = await this.cb.execute(() => this.rpc.getBlockNumber(1000));
 
         const rows = (await conn.execute(
           `SELECT last_processed_block FROM infra.cursors WHERE id = $1`,
@@ -151,7 +150,7 @@ export function buildFilters(subs: Subscription[], from: bigint, to: bigint): Ge
   return subs.map((s) => ({
     fromBlock: bigIntToHex(from),
     toBlock: bigIntToHex(to),
-    address: s.address,
+    address: s.address as any,
     topics: s.topic0 ? [s.topic0] : undefined,
   }));
 }
