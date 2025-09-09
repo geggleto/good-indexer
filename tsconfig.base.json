@@ -16,7 +16,15 @@
     "forceConsistentCasingInFileNames": true,
     "lib": ["ES2022"],
     "baseUrl": ".",
-    "paths": {},
+    "paths": {
+      "@good-indexer/metrics": ["packages/metrics/src/index.ts"],
+      "@good-indexer/ingest": ["packages/ingest/src/index.ts"],
+      "@good-indexer/dispatch": ["packages/dispatch/src/index.ts"],
+      "@good-indexer/executor-evm": ["packages/executor-evm/src/index.ts"],
+      "@good-indexer/storage-postgres": ["packages/storage-postgres/src/index.ts"],
+      "@good-indexer/examples-erc20-transfers": ["examples/erc20-transfers/src/index.ts"],
+      "@good-indexer/adapters-evm": ["packages/adapters-evm/src/index.ts"]
+    },
     "types": ["node"],
     "experimentalDecorators": true,
     "emitDecoratorMetadata": false,

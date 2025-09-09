@@ -180,12 +180,12 @@ program
     } as any);
 
     const conn = orm.em.getConnection();
-    const ingestPkg: any = await import('@good-indexer/ingest');
+    const adapters: any = await import('@good-indexer/adapters-evm');
     const rpcUrl = process.env.RPC_READ_URL;
     let head: bigint | null = null;
     if (rpcUrl) {
       try {
-        const rpc = new ingestPkg.RpcReadClient(rpcUrl);
+        const rpc = new adapters.RpcReadClient(rpcUrl);
         head = await rpc.getBlockNumber(800);
       } catch {
         head = null;

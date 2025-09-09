@@ -39,7 +39,6 @@ export class CircuitBreaker {
   private failureCount = 0;
   private successCount = 0;
   private openUntil = 0;
-  // half-open window not yet used; future improvement
 
   constructor(
     private failureThreshold = 5,

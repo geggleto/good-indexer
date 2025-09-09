@@ -12,6 +12,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@good-indexer/adapters-evm": "workspace:*",
     "@good-indexer/storage-postgres": "workspace:*",
     "@good-indexer/metrics": "workspace:*",
     "@manypkg/find-root": "^2.2.3",

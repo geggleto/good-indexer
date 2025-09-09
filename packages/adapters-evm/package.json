@@ -1,5 +1,5 @@
 {
-  "name": "@good-indexer/ingest",
+  "name": "@good-indexer/adapters-evm",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -12,15 +12,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@good-indexer/adapters-evm": "workspace:*",
-    "@good-indexer/storage-postgres": "workspace:*",
-    "@good-indexer/metrics": "workspace:*",
-    "@manypkg/find-root": "^2.2.3",
-    "@mikro-orm/core": "^6.5.2",
-    "@mikro-orm/knex": "^6.2.9",
-    "@mikro-orm/migrations": "^6.2.9",
-    "@mikro-orm/postgresql": "^6.5.2",
-    "zod": "^3.23.8"
+    "viem": "^2.21.5"
   },
   "devDependencies": {
     "@types/node": "^20.14.12",
@@ -29,3 +21,4 @@
     "typescript": "^5.6.2"
   }
 }
+

@@ -3,12 +3,12 @@ import { MikroORM } from '@mikro-orm/core';
 import pg from '@mikro-orm/postgresql';
 import { resolve } from 'path';
 import { findRootSync } from '@manypkg/find-root';
-import { RpcReadClient, bigIntToHex, Log, GetLogsParams } from './rpc.js';
+import { RpcReadClient, bigIntToHex, Log, GetLogsParams } from '@good-indexer/adapters-evm';
 import { IngestConfig } from './config.js';
 import { stablePartitionKey } from './util/hash.js';
-import { TokenBucket, CircuitBreaker } from './resilience.js';
-import { Counter, Histogram, Gauge, MetricsRegistry, MetricsServer } from '../../metrics/src/index.js';
-import { setTimeout as delayMs } from 'timers/promises';
+import { TokenBucket, CircuitBreaker } from '@good-indexer/adapters-evm';
+import { Counter, Histogram, Gauge, MetricsRegistry, MetricsServer } from '@good-indexer/metrics';
+// local delay util to avoid timers/promises typing in some environments
 
 export type Subscription = { address?: string; topic0?: string };
 
@@ -102,7 +102,7 @@ export class IngestDaemon {
         this.metrics.cbOpenSeconds.set({ pool: 'read' }, this.cb.getOpenRemainingSeconds());
 
         if (head <= hwm) {
-          await delayMs(this.config.pollIntervalMs);
+          await delay(this.config.pollIntervalMs);
           continue;
         }
 
@@ -134,7 +134,7 @@ export class IngestDaemon {
         // eslint-disable-next-line no-console
         console.error('ingest loop error', err);
         step = Math.max(Math.floor(step / 2), this.config.getLogsStepMin);
-        await delayMs(this.config.pollIntervalMs);
+        await delay(this.config.pollIntervalMs);
       }
     }
   }
@@ -235,6 +235,6 @@ function computePartitionKey(address: string, shards: number): string {
 }
 
 function delay(ms: number): Promise<void> {
-  return delayMs(ms) as unknown as Promise<void>;
+  return new Promise((resolve) => (globalThis as any).setTimeout(resolve, ms));
 }
 
