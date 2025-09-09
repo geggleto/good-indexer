@@ -1,13 +1,9 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "composite": true,
-    "rootDir": "src",
-    "outDir": "dist",
-    "baseUrl": ".",
-    "paths": {
-      "../../metrics/src/index.js": ["../metrics/src/index.ts"]
-    }
+    "composite": false,
+    "rootDir": "..",
+    "outDir": "dist"
   },
   "include": ["src"]
 }

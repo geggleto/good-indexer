@@ -82,7 +82,7 @@ export class IngestDaemon {
         await this.bucketBlockNumber.take();
         const t0 = Date.now();
         this.metrics.rpcRequests.inc({ method: 'blockNumber' });
-        const head = await this.cb.execute(() => this.rpc.getBlockNumber(1000)).catch((e) => {
+        const head = await this.cb.execute(() => this.rpc.getBlockNumber(1000)).catch((e: unknown) => {
           this.metrics.rpcErrors.inc({ method: 'blockNumber' });
           this.metrics.blockNumberDuration.observe({ method: 'blockNumber' }, Date.now() - t0);
           throw e;
@@ -115,7 +115,7 @@ export class IngestDaemon {
             await this.bucketGetLogs.take();
             const t1 = Date.now();
             this.metrics.rpcRequests.inc({ method: 'getLogs' });
-            const res = await this.cb.execute(() => this.rpc.getLogs(filter, 15000)).catch((e) => {
+            const res = await this.cb.execute(() => this.rpc.getLogs(filter, 15000)).catch((e: unknown) => {
               this.metrics.rpcErrors.inc({ method: 'getLogs' });
               this.metrics.getLogsDuration.observe({ method: 'getLogs' }, Date.now() - t1);
               throw e;

@@ -4,7 +4,7 @@ import pg from '@mikro-orm/postgresql';
 import { findRootSync } from '@manypkg/find-root';
 import { resolve } from 'path';
 import { setTimeout as delayMs } from 'timers/promises';
-import { Counter, MetricsRegistry, MetricsServer } from '../../metrics/src/index.js';
+import { Counter, MetricsRegistry, MetricsServer } from '@good-indexer/metrics';
 
 export type DispatchConfig = {
   dbUrl: string;
@@ -125,17 +125,17 @@ export class Dispatcher {
 
           // Mark ACK for processed rows
           const idsParams = toProcess.map((_, i) => `$${i + 1}`).join(',');
-          const ackRes = (await trx.execute(
+          await trx.execute(
             `UPDATE infra.inbox
              SET status = 'ACK', attempts = attempts + 1, last_attempt_at = now(), last_error = NULL
              WHERE handler_kind = $${toProcess.length + 1} AND event_id IN (${idsParams})`,
             [...toProcess.map((r) => r.event_id), this.cfg.handlerKind]
-          )) as Array<unknown>;
+          );
           this.metrics.inboxAttemptsTotal.inc({ handlerKind: this.cfg.handlerKind, status: 'ACK' }, toProcess.length);
         } catch (err: any) {
           const errorMsg = (err?.message ?? String(err)).slice(0, 500);
           const idsParams = toProcess.map((_, i) => `$${i + 1}`).join(',');
-          const failRows = (await trx.execute(
+          await trx.execute(
             `UPDATE infra.inbox
              SET attempts = attempts + 1,
                  status = CASE WHEN attempts + 1 >= $${toProcess.length + 2} THEN 'DLQ' ELSE 'FAIL' END,
@@ -143,7 +143,7 @@ export class Dispatcher {
                  last_error = $${toProcess.length + 3}
              WHERE handler_kind = $${toProcess.length + 1} AND event_id IN (${idsParams})`,
             [...toProcess.map((r) => r.event_id), this.cfg.handlerKind, this.cfg.maxAttempts, errorMsg]
-          )) as Array<unknown>;
+          );
           // Approximate counts by querying how many became DLQ
           const dlqCount = (await trx.execute(
             `SELECT COUNT(*)::int AS c FROM infra.inbox WHERE handler_kind = $1 AND status = 'DLQ' AND event_id IN (${idsParams})`,
