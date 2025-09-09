@@ -1,27 +1,21 @@
 {
-  "name": "@good-indexer/cli",
+  "name": "@good-indexer/dispatch",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "bin": {
-    "gx": "dist/index.js"
-  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsup src/index.ts --format esm",
+    "build": "tsup src/index.ts --format esm --dts",
     "dev": "tsx watch src/index.ts",
     "lint": "eslint 'src/**/*.{ts,tsx}'",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@good-indexer/storage-postgres": "workspace:*",
-    "@good-indexer/ingest": "workspace:*",
-    "@good-indexer/dispatch": "workspace:*",
-    "@good-indexer/examples-erc20-transfers": "workspace:*",
     "@manypkg/find-root": "^2.2.3",
     "@mikro-orm/core": "^6.2.9",
     "@mikro-orm/postgresql": "^6.2.9",
-    "commander": "^12.1.0",
-    "dotenv": "^16.4.5"
+    "@good-indexer/storage-postgres": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.14.12",
@@ -30,3 +24,4 @@
     "typescript": "^5.6.2"
   }
 }
+

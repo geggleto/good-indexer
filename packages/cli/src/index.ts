@@ -47,9 +47,13 @@ program
   .description('Run a component')
   .option('--ingest', 'Run ingest daemon')
   .option('--publisher', 'Run ingest publisher')
+  .option('--dispatch', 'Run dispatcher')
+  .option('--handler <kind>', 'Handler kind label for inbox')
+  .option('--partition <selector>', 'Partition selector prefix (e.g., 0:)')
   .option('--shard <label>', 'Shard label', 'shard-0')
-  .action(async (opts: { ingest?: boolean; publisher?: boolean; shard?: string }) => {
+  .action(async (opts: { ingest?: boolean; publisher?: boolean; dispatch?: boolean; shard?: string; handler?: string; partition?: string }) => {
     const ingestPkg: any = await import('@good-indexer/ingest');
+    const dispatchPkg: any = await import('@good-indexer/dispatch');
     const cfgResult = ingestPkg.configSchema.safeParse({});
     if (!cfgResult.success) {
       console.error('Invalid config', cfgResult.error.flatten());
@@ -68,7 +72,26 @@ program
       });
       return;
     }
-    console.error('Specify --ingest or --publisher');
+    if (opts.dispatch) {
+      const handlerKind = opts.handler ?? 'Examples.Erc20Projector';
+      const dispatcher = new dispatchPkg.Dispatcher({
+        dbUrl: cfg.dbUrl,
+        handlerKind,
+        partitionSelector: opts.partition ?? '',
+      });
+      let handler: any;
+      if (handlerKind === 'Examples.Erc20Projector') {
+        const ex = await import('@good-indexer/examples-erc20-transfers');
+        handler = ex.Erc20Projector;
+      } else {
+        handler = async (events: any[]) => {
+          console.log('dispatch batch', events.length);
+        };
+      }
+      await dispatcher.runWithInboxBatch(handler);
+      return;
+    }
+    console.error('Specify --ingest or --publisher or --dispatch');
     process.exit(1);
   });
 
