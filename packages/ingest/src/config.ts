@@ -19,7 +19,9 @@ export const configSchema = z.object({
       try {
         const parsed = JSON.parse(value);
         if (Array.isArray(parsed)) return parsed as Array<{ address?: string; topic0?: string }>;
-      } catch {}
+      } catch {
+        // Ignore JSON parse errors, return empty array
+      }
       return [] as Array<{ address?: string; topic0?: string }>;
     }),
 });

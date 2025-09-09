@@ -131,7 +131,6 @@ export class IngestDaemon {
         // success: widen
         step = Math.min(step * 2, this.config.getLogsStepMax);
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.error('ingest loop error', err);
         step = Math.max(Math.floor(step / 2), this.config.getLogsStepMin);
         await delay(this.config.pollIntervalMs);

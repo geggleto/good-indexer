@@ -70,7 +70,6 @@ export class EvmExecutor {
             [row.command_key, txHash]
           );
         } catch (err) {
-          // eslint-disable-next-line no-console
           console.error('executor error', err);
         }
       }

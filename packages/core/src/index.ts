@@ -16,7 +16,6 @@ const server = createServer((request: IncomingMessage, response: ServerResponse)
 });
 
 server.listen(port, () => {
-  // eslint-disable-next-line no-console
   console.log(`core server listening on ${port}`);
 });
 
