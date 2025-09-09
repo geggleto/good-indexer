@@ -48,12 +48,14 @@ program
   .option('--ingest', 'Run ingest daemon')
   .option('--publisher', 'Run ingest publisher')
   .option('--dispatch', 'Run dispatcher')
+  .option('--executor', 'Run EVM executor')
   .option('--handler <kind>', 'Handler kind label for inbox')
   .option('--partition <selector>', 'Partition selector prefix (e.g., 0:)')
   .option('--shard <label>', 'Shard label', 'shard-0')
-  .action(async (opts: { ingest?: boolean; publisher?: boolean; dispatch?: boolean; shard?: string; handler?: string; partition?: string }) => {
+  .action(async (opts: { ingest?: boolean; publisher?: boolean; dispatch?: boolean; executor?: boolean; shard?: string; handler?: string; partition?: string }) => {
     const ingestPkg: any = await import('@good-indexer/ingest');
     const dispatchPkg: any = await import('@good-indexer/dispatch');
+    const executorPkg: any = await import('@good-indexer/executor-evm').catch(() => null);
     const cfgResult = ingestPkg.configSchema.safeParse({});
     if (!cfgResult.success) {
       console.error('Invalid config', cfgResult.error.flatten());
@@ -91,7 +93,20 @@ program
       await dispatcher.runWithInboxBatch(handler);
       return;
     }
-    console.error('Specify --ingest or --publisher or --dispatch');
+    if (opts.executor) {
+      if (!executorPkg) {
+        console.error('executor package not available');
+        process.exit(1);
+      }
+      const exec = new executorPkg.EvmExecutor({
+        dbUrl: cfg.dbUrl,
+        rpcWriteUrl: process.env.RPC_WRITE_URL ?? cfg.rpcReadUrl ?? '',
+        executorEnabled: String(process.env.EXECUTOR_ENABLED ?? 'true') !== 'false',
+      });
+      await exec.run();
+      return;
+    }
+    console.error('Specify --ingest or --publisher or --dispatch or --executor');
     process.exit(1);
   });
 

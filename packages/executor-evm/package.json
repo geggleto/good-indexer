@@ -1,5 +1,5 @@
 {
-  "name": "@good-indexer/storage-postgres",
+  "name": "@good-indexer/executor-evm",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,25 +9,21 @@
     "build": "tsup src/index.ts --format esm --dts",
     "dev": "tsx watch src/index.ts",
     "lint": "eslint 'src/**/*.{ts,tsx}'",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "migrate": "mikro-orm migration:up",
-    "migration:generate": "mikro-orm migration:create"
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@good-indexer/storage-postgres": "workspace:*",
     "@mikro-orm/core": "^6.5.2",
+    "@mikro-orm/migrations": "^6.2.9",
     "@mikro-orm/postgresql": "^6.5.2",
-    "pg": "^8.12.0",
-    "zod": "^3.23.8"
+    "@manypkg/find-root": "^2.2.3"
   },
   "devDependencies": {
-    "@mikro-orm/migrations": "^6.5.2",
     "@types/node": "^20.14.12",
     "@typescript-eslint/eslint-plugin": "^8.6.0",
     "@typescript-eslint/parser": "^8.6.0",
     "eslint": "^9.10.0",
-    "mikro-orm": "^6.2.9",
     "prettier": "^3.3.3",
-    "ts-node": "^10.9.2",
     "tslib": "^2.6.3",
     "tsup": "^8.3.0",
     "tsx": "^4.19.0",
