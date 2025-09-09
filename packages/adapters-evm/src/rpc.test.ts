@@ -1,5 +1,4 @@
 import { describe, it, expect, vi } from 'vitest';
-import { vi } from 'vitest';
 vi.mock('viem', () => {
   return {
     createPublicClient: vi.fn(() => ({

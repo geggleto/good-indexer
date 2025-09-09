@@ -44,7 +44,6 @@ export class IngestPublisher {
             [row.event_id]
           );
         } catch (err) {
-          // eslint-disable-next-line no-console
           console.error('publish error', err);
         }
       }
