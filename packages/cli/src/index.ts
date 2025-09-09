@@ -42,5 +42,35 @@ program
     console.log('Migrations applied successfully');
   });
 
+program
+  .command('run')
+  .description('Run a component')
+  .option('--ingest', 'Run ingest daemon')
+  .option('--publisher', 'Run ingest publisher')
+  .option('--shard <label>', 'Shard label', 'shard-0')
+  .action(async (opts: { ingest?: boolean; publisher?: boolean; shard?: string }) => {
+    const ingestPkg: any = await import('@good-indexer/ingest');
+    const cfgResult = ingestPkg.configSchema.safeParse({});
+    if (!cfgResult.success) {
+      console.error('Invalid config', cfgResult.error.flatten());
+      process.exit(1);
+    }
+    const cfg = cfgResult.data;
+    if (opts.ingest) {
+      const daemon = new ingestPkg.IngestDaemon(cfg);
+      await daemon.start(opts.shard!, cfg.subscriptions ?? []);
+      return;
+    }
+    if (opts.publisher) {
+      const publisher = new ingestPkg.IngestPublisher(cfg.dbUrl);
+      await publisher.start(async (eventId: string) => {
+        console.log('publish', eventId);
+      });
+      return;
+    }
+    console.error('Specify --ingest or --publisher');
+    process.exit(1);
+  });
+
 program.parseAsync();
 
