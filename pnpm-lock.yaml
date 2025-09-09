@@ -8,8 +8,29 @@ importers:
 
   .: {}
 
+  examples/erc20-transfers:
+    devDependencies:
+      '@types/node':
+        specifier: ^20.14.12
+        version: 20.19.13
+      tsup:
+        specifier: ^8.3.0
+        version: 8.5.0(tsx@4.20.5)(typescript@5.9.2)
+      tsx:
+        specifier: ^4.19.0
+        version: 4.20.5
+      typescript:
+        specifier: ^5.6.2
+        version: 5.9.2
+
   packages/cli:
     dependencies:
+      '@good-indexer/dispatch':
+        specifier: workspace:*
+        version: link:../dispatch
+      '@good-indexer/examples-erc20-transfers':
+        specifier: workspace:*
+        version: link:../../examples/erc20-transfers
       '@good-indexer/ingest':
         specifier: workspace:*
         version: link:../ingest
@@ -46,6 +67,34 @@ importers:
         version: 5.9.2
 
   packages/core:
+    devDependencies:
+      '@types/node':
+        specifier: ^20.14.12
+        version: 20.19.13
+      tsup:
+        specifier: ^8.3.0
+        version: 8.5.0(tsx@4.20.5)(typescript@5.9.2)
+      tsx:
+        specifier: ^4.19.0
+        version: 4.20.5
+      typescript:
+        specifier: ^5.6.2
+        version: 5.9.2
+
+  packages/dispatch:
+    dependencies:
+      '@good-indexer/storage-postgres':
+        specifier: workspace:*
+        version: link:../storage-postgres
+      '@manypkg/find-root':
+        specifier: ^2.2.3
+        version: 2.2.3
+      '@mikro-orm/core':
+        specifier: ^6.2.9
+        version: 6.5.2
+      '@mikro-orm/postgresql':
+        specifier: ^6.2.9
+        version: 6.5.2(@mikro-orm/core@6.5.2)
     devDependencies:
       '@types/node':
         specifier: ^20.14.12
