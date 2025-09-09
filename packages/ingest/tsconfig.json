@@ -3,9 +3,9 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
-    "types": ["node"],
-    "baseUrl": ".",
-    "paths": {}
+    "composite": false,
+    "strict": true
   },
-  "include": ["src"]
+  "include": ["src/**/*"]
 }
+
