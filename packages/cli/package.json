@@ -13,13 +13,15 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@good-indexer/storage-postgres": "workspace:*",
-    "@good-indexer/ingest": "workspace:*",
     "@good-indexer/dispatch": "workspace:*",
     "@good-indexer/examples-erc20-transfers": "workspace:*",
+    "@good-indexer/executor-evm": "workspace:*",
+    "@good-indexer/ingest": "workspace:*",
+    "@good-indexer/storage-postgres": "workspace:*",
     "@manypkg/find-root": "^2.2.3",
-    "@mikro-orm/core": "^6.2.9",
-    "@mikro-orm/postgresql": "^6.2.9",
+    "@mikro-orm/core": "^6.5.2",
+    "@mikro-orm/migrations": "^6.2.9",
+    "@mikro-orm/postgresql": "^6.5.2",
     "commander": "^12.1.0",
     "dotenv": "^16.4.5"
   },

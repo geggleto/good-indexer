@@ -13,10 +13,11 @@
   },
   "dependencies": {
     "@good-indexer/storage-postgres": "workspace:*",
-    "@mikro-orm/knex": "^6.2.9",
     "@manypkg/find-root": "^2.2.3",
-    "@mikro-orm/core": "^6.2.9",
-    "@mikro-orm/postgresql": "^6.2.9",
+    "@mikro-orm/core": "^6.5.2",
+    "@mikro-orm/knex": "^6.2.9",
+    "@mikro-orm/migrations": "^6.2.9",
+    "@mikro-orm/postgresql": "^6.5.2",
     "viem": "^2.21.5",
     "zod": "^3.23.8"
   },
@@ -27,4 +28,3 @@
     "typescript": "^5.6.2"
   }
 }
-
