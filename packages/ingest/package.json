@@ -1,10 +1,14 @@
 {
   "name": "@good-indexer/ingest",
-  "version": "0.1.0",
-  "private": true,
+  "version": "1.0.0",
+  "description": "Event ingestion system with adaptive polling and exactly-once delivery",
+  "keywords": ["indexer", "blockchain", "ethereum", "evm", "ingest", "polling", "events"],
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts",
     "dev": "tsx watch src/index.ts",

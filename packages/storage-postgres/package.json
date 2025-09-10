@@ -1,10 +1,14 @@
 {
   "name": "@good-indexer/storage-postgres",
-  "version": "0.1.0",
-  "private": true,
+  "version": "1.0.0",
+  "description": "PostgreSQL storage layer with MikroORM entities",
+  "keywords": ["indexer", "blockchain", "ethereum", "evm", "postgres", "database", "mikroorm"],
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts",
     "dev": "tsx watch src/index.ts",

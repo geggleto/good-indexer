@@ -1,9 +1,16 @@
 {
   "name": "good-indexer",
-  "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Polling-only EVM indexer with exactly-once effects via Inbox/Outbox",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/glenneggleton/good-indexer.git"
+  },
+  "homepage": "https://github.com/glenneggleton/good-indexer#readme",
+  "bugs": {
+    "url": "https://github.com/glenneggleton/good-indexer/issues"
+  },
   "engines": {
     "node": ">=22.0.0"
   },
@@ -17,6 +24,8 @@
     "test": "vitest --run",
     "test:watch": "vitest",
     "coverage": "vitest --run --coverage",
+    "docs": "typedoc",
+    "docs:serve": "npx serve docs/api",
     "prepare": "echo 'ok'"
   },
   "workspaces": [
@@ -35,6 +44,8 @@
     "recheck": "^4.5.0",
     "tsup": "^8.3.0",
     "tsx": "^4.19.0",
+    "typedoc": "^0.28.12",
+    "typedoc-plugin-markdown": "^4.8.1",
     "typescript": "^5.6.2",
     "vitest": "^2.1.9"
   },

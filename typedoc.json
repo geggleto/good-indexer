@@ -1,0 +1,57 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": [
+    "packages/core/src/index.ts",
+    "packages/adapters-evm/src/index.ts",
+    "packages/storage-postgres/src/index.ts",
+    "packages/metrics/src/index.ts",
+    "packages/ingest/src/index.ts",
+    "packages/dispatch/src/index.ts",
+    "packages/executor-evm/src/index.ts",
+    "packages/cli/src/index.ts"
+  ],
+  "out": "docs/api",
+  "name": "Good Indexer API Documentation",
+  "includeVersion": true,
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeExternals": true,
+  "readme": "README.md",
+  "theme": "default",
+  "categorizeByGroup": true,
+  "defaultCategory": "Other",
+  "categoryOrder": [
+    "Core",
+    "Adapters",
+    "Storage",
+    "Metrics",
+    "Ingest",
+    "Dispatch",
+    "Executor",
+    "CLI",
+    "Other"
+  ],
+  "sort": ["source-order"],
+  "kindSortOrder": [
+    "Project",
+    "Module",
+    "Namespace",
+    "Enum",
+    "Class",
+    "Interface",
+    "TypeAlias",
+    "Constructor",
+    "Property",
+    "Variable",
+    "Function",
+    "Accessor",
+    "Method"
+  ],
+  "navigation": {
+    "includeCategories": true,
+    "includeGroups": true
+  },
+  "searchInComments": true,
+  "cleanOutputDir": true,
+  "plugin": ["typedoc-plugin-markdown"]
+}

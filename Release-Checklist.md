@@ -16,67 +16,67 @@ This checklist outlines the steps needed to prepare the good-indexer package for
 ### 🔧 **Package Configuration**
 
 #### **Remove Private Flags**
-- [ ] Remove `"private": true` from root `package.json`
-- [ ] Remove `"private": true` from all package `package.json` files:
-  - [ ] `packages/core/package.json`
-  - [ ] `packages/adapters-evm/package.json`
-  - [ ] `packages/storage-postgres/package.json`
-  - [ ] `packages/metrics/package.json`
-  - [ ] `packages/ingest/package.json`
-  - [ ] `packages/dispatch/package.json`
-  - [ ] `packages/executor-evm/package.json`
-  - [ ] `packages/cli/package.json`
+- [x] Remove `"private": true` from root `package.json`
+- [x] Remove `"private": true` from all package `package.json` files:
+  - [x] `packages/core/package.json`
+  - [x] `packages/adapters-evm/package.json`
+  - [x] `packages/storage-postgres/package.json`
+  - [x] `packages/metrics/package.json`
+  - [x] `packages/ingest/package.json`
+  - [x] `packages/dispatch/package.json`
+  - [x] `packages/executor-evm/package.json`
+  - [x] `packages/cli/package.json`
 
 #### **Add Publishing Metadata**
-- [ ] Add `"publishConfig"` to each package.json:
+- [x] Add `"publishConfig"` to each package.json:
   ```json
   "publishConfig": {
     "access": "public"
   }
   ```
-- [ ] Add proper `"keywords"` to each package
-- [ ] Add `"repository"` field to root package.json
-- [ ] Add `"homepage"` field to root package.json
-- [ ] Add `"bugs"` field to root package.json
+- [x] Add proper `"keywords"` to each package
+- [x] Add `"repository"` field to root package.json
+- [x] Add `"homepage"` field to root package.json
+- [x] Add `"bugs"` field to root package.json
 
 #### **Version Management**
-- [ ] Decide on initial version strategy:
-  - [ ] Option A: Start with `1.0.0` (stable release)
+- [x] Decide on initial version strategy:
+  - [x] Option A: Start with `1.0.0` (stable release)
   - [ ] Option B: Start with `0.1.0` (initial release)
   - [ ] Option C: Start with `1.0.0-beta.1` (beta release)
-- [ ] Update all package versions consistently
-- [ ] Set up semantic versioning strategy
+- [x] Update all package versions consistently
+- [x] Set up semantic versioning strategy
 
 ### 📚 **Documentation**
 
 #### **API Documentation**
-- [ ] Create `docs/api/` directory
-- [ ] Generate API docs for each package:
-  - [ ] `@good-indexer/core` API docs
-  - [ ] `@good-indexer/adapters-evm` API docs
-  - [ ] `@good-indexer/storage-postgres` API docs
-  - [ ] `@good-indexer/metrics` API docs
-  - [ ] `@good-indexer/ingest` API docs
-  - [ ] `@good-indexer/dispatch` API docs
-  - [ ] `@good-indexer/executor-evm` API docs
-  - [ ] `@good-indexer/cli` API docs
+- [x] Create `docs/api/` directory
+- [x] Generate API docs for each package:
+  - [x] `@good-indexer/core` API docs
+  - [x] `@good-indexer/adapters-evm` API docs
+  - [x] `@good-indexer/storage-postgres` API docs
+  - [x] `@good-indexer/metrics` API docs
+  - [x] `@good-indexer/ingest` API docs
+  - [x] `@good-indexer/dispatch` API docs
+  - [x] `@good-indexer/executor-evm` API docs
+  - [x] `@good-indexer/cli` API docs
 
 #### **Usage Documentation**
-- [ ] Create `docs/getting-started.md`
-- [ ] Create `docs/installation.md`
-- [ ] Create `docs/configuration.md`
-- [ ] Create `docs/deployment.md`
-- [ ] Create `docs/troubleshooting.md`
-- [ ] Add JSDoc comments to all public APIs
-- [ ] Create TypeDoc configuration
+- [x] Create `docs/getting-started.md`
+- [x] Create `docs/installation.md`
+- [x] Create `docs/configuration.md`
+- [x] Create `docs/deployment.md`
+- [x] Create `docs/troubleshooting.md`
+- [x] Add JSDoc comments to all public APIs
+- [x] Create TypeDoc configuration
 
 #### **Examples & Guides**
-- [ ] Expand `examples/erc20-transfers/` with more examples
-- [ ] Create `examples/` for common use cases:
-  - [ ] `examples/nft-indexer/`
-  - [ ] `examples/defi-indexer/`
-  - [ ] `examples/multi-chain-indexer/`
-- [ ] Create `docs/examples/` with step-by-step guides
+- [x] Expand `examples/erc20-transfers/` with more examples
+- [x] Create `examples/` for common use cases:
+  - [x] `examples/nft-indexer/`
+  - [x] `examples/defi-indexer/`
+  - [x] `examples/multi-chain-indexer/`
+- [x] Create `docs/examples/` with step-by-step guides
 
 ### 🚀 **Release Strategy**
 

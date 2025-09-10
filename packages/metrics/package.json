@@ -1,10 +1,14 @@
 {
   "name": "@good-indexer/metrics",
-  "version": "0.1.0",
-  "private": true,
+  "version": "1.0.0",
+  "description": "Metrics collection and observability for good-indexer",
+  "keywords": ["indexer", "blockchain", "ethereum", "evm", "metrics", "observability", "prometheus"],
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts",
     "dev": "tsx watch src/index.ts",
